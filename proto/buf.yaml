@@ -1,0 +1,7 @@
+version: v1
+name: buf.build/sundowndev/grpc-api-example
+deps:
+  - buf.build/googleapis/googleapis
+lint:
+  use:
+    - DEFAULT
