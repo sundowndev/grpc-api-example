@@ -2,56 +2,112 @@ package server
 
 import (
 	"context"
+	"errors"
 	"github.com/stretchr/testify/assert"
 	notesv1 "github.com/sundowndev/grpc-api-example/proto/notes/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/test/bufconn"
+	"io"
+	"net"
 	"testing"
 )
 
+func newTestServer() (*Server, *grpc.ClientConn, error) {
+	srv := NewServer(insecure.NewCredentials())
+	buffer := 101024 * 1024
+	lis := bufconn.Listen(buffer)
+	srv.listener = lis
+	go srv.grpcSrv.Serve(lis)
+
+	conn, err := grpc.DialContext(context.Background(), "",
+		grpc.WithContextDialer(func(context.Context, string) (net.Conn, error) {
+			return lis.Dial()
+		}),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		_ = srv.Close()
+		return nil, nil, err
+	}
+
+	return srv, conn, nil
+}
+
 func TestNotesService_ListNotes(t *testing.T) {
-	addr := "0.0.0.0:10000"
-	srv := NewServer()
-	go srv.Listen(addr)
-	defer srv.Close()
-
-	conn, err := grpc.DialContext(context.Background(), addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		t.Fatal(err)
+	testcases := []struct {
+		name  string
+		notes []*notesv1.Note
+	}{
+		{
+			name:  "test with no notes",
+			notes: []*notesv1.Note{},
+		},
+		{
+			name: "test with few notes",
+			notes: []*notesv1.Note{
+				{Title: "test note 1", Archived: false},
+				{Title: "note 2", Archived: true},
+				{Title: "note 3", Archived: false},
+			},
+		},
 	}
-	defer conn.Close()
 
-	client := notesv1.NewNotesServiceClient(conn)
-	res, err := client.ListNotes(context.TODO(), &notesv1.ListNotesRequest{})
-	if err != nil {
-		t.Fatal(err)
+	for _, tt := range testcases {
+		t.Run(tt.name, func(t *testing.T) {
+			srv, conn, err := newTestServer()
+			if err != nil {
+				t.Fatal(err)
+			}
+			client := notesv1.NewNotesServiceClient(conn)
+			defer srv.Close()
+			defer conn.Close()
+
+			for _, note := range tt.notes {
+				_, err := client.AddNote(context.Background(), &notesv1.AddNoteRequest{Title: note.Title})
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			res, err := client.ListNotes(context.Background(), &notesv1.ListNotesRequest{})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			notes := make([]*notesv1.Note, 0)
+
+			for {
+				recv, err := res.Recv()
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				if err != nil {
+					t.Fatal(err)
+				}
+				notes = append(notes, recv.Note)
+			}
+
+			assert.Len(t, notes, len(tt.notes))
+		})
 	}
-
-	assert.NotNil(t, res)
-
-	//err = res.RecvMsg()
-	//if err != nil && !errors.Is(err, io.EOF) {
-	//	t.Fatal(err)
-	//}
 }
 
 func TestNotesService_AddNote(t *testing.T) {
-	addr := "0.0.0.0:10000"
-	srv := NewServer()
-	go srv.Listen(addr)
-	defer srv.Close()
-
-	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	srv, conn, err := newTestServer()
 	if err != nil {
 		t.Fatal(err)
 	}
+	client := notesv1.NewNotesServiceClient(conn)
+	defer srv.Close()
 	defer conn.Close()
 
-	client := notesv1.NewNotesServiceClient(conn)
-	res, err := client.AddNote(context.TODO(), &notesv1.AddNoteRequest{Title: "test note"})
+	res, err := client.AddNote(context.Background(), &notesv1.AddNoteRequest{Title: "test note"})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	assert.NotNil(t, res)
+	assert.Equal(t, "test note", res.Note.Title)
+	assert.Equal(t, false, res.Note.Archived)
 }

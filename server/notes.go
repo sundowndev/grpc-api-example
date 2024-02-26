@@ -14,7 +14,10 @@ type NotesService struct {
 }
 
 func NewNotesService() *NotesService {
-	return &NotesService{}
+	return &NotesService{
+		mu:    &sync.RWMutex{},
+		notes: make([]*notesv1.Note, 0),
+	}
 }
 
 func (s *NotesService) ListNotes(_ *notesv1.ListNotesRequest, srv notesv1.NotesService_ListNotesServer) error {
@@ -32,15 +35,15 @@ func (s *NotesService) ListNotes(_ *notesv1.ListNotesRequest, srv notesv1.NotesS
 }
 
 func (s *NotesService) AddNote(_ context.Context, req *notesv1.AddNoteRequest) (*notesv1.AddNoteResponse, error) {
-	n := &notesv1.Note{
+	note := &notesv1.Note{
 		Id:       uuid.Must(uuid.NewV4()).String(),
 		Title:    req.Title,
 		Archived: false,
 	}
 
-	s.notes = append(s.notes, n)
+	s.notes = append(s.notes, note)
 
 	return &notesv1.AddNoteResponse{
-		Note: n,
+		Note: note,
 	}, nil
 }
