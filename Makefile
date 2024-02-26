@@ -1,9 +1,8 @@
-BUF_VERSION:=v1.29.0
-
 install-tools:
+	go install gotest.tools/gotestsum@v1.11.0
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
-	go install github.com/bufbuild/buf/cmd/buf@$(BUF_VERSION)
+	go install github.com/bufbuild/buf/cmd/buf@v1.29.0
 
 build: generate
 	buf build
@@ -20,17 +19,21 @@ fmt:
 	buf format
 	go fmt ./...
 
-go.mod: FORCE
+go.mod:
 	go mod tidy
 	go mod verify
 go.sum: go.mod
 
 test:
-	$(GOTEST) --format testname --junitfile unit-tests.xml -- -mod=readonly -race -coverprofile=./c.out -covermode=atomic -coverpkg=.,./... ./...
+	gotestsum --format testname --junitfile unit-tests.xml -- -mod=readonly -race -coverprofile=./c.out -covermode=atomic -coverpkg=.,./... ./...
 
 coverage: test
-	$(GOTOOL) cover -func=cover.out
+	go tool cover -func=cover.out
 
 mocks:
 	rm -rf mocks/*
 	mockery --all
+
+clean:
+	go clean
+	rm -f bin/*
