@@ -35,6 +35,9 @@ func (s *NotesService) ListNotes(_ *notesv1.ListNotesRequest, srv notesv1.NotesS
 }
 
 func (s *NotesService) AddNote(_ context.Context, req *notesv1.AddNoteRequest) (*notesv1.AddNoteResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	note := &notesv1.Note{
 		Id:       uuid.Must(uuid.NewV4()).String(),
 		Title:    req.Title,
