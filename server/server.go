@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"github.com/bufbuild/protovalidate-go"
 	notesv1 "github.com/sundowndev/grpc-api-example/proto/notes/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -14,16 +15,22 @@ type Server struct {
 	grpcSrv  *grpc.Server
 }
 
-func NewServer(c credentials.TransportCredentials) *Server {
+func NewServer(c credentials.TransportCredentials) (*Server, error) {
 	s := grpc.NewServer(
 		grpc.Creds(c),
 	)
 	srv := &Server{
 		grpcSrv: s,
 	}
-	srv.registerServices()
 
-	return srv
+	v, err := protovalidate.New()
+	if err != nil {
+		return srv, fmt.Errorf("failed to initialize validator: %v", err)
+	}
+
+	srv.registerServices(v)
+
+	return srv, nil
 }
 
 func (s *Server) Listen(addr string) error {
@@ -46,6 +53,6 @@ func (s *Server) Close() error {
 	return nil
 }
 
-func (s *Server) registerServices() {
-	notesv1.RegisterNotesServiceServer(s.grpcSrv, NewNotesService())
+func (s *Server) registerServices(v *protovalidate.Validator) {
+	notesv1.RegisterNotesServiceServer(s.grpcSrv, NewNotesService(v))
 }

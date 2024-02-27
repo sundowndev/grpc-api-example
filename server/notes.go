@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"fmt"
+	"github.com/bufbuild/protovalidate-go"
 	"github.com/gofrs/uuid"
 	notesv1 "github.com/sundowndev/grpc-api-example/proto/notes/v1"
 	"sync"
@@ -9,14 +11,16 @@ import (
 
 type NotesService struct {
 	notesv1.UnimplementedNotesServiceServer
-	mu    *sync.RWMutex
-	notes []*notesv1.Note
+	mu        *sync.RWMutex
+	notes     []*notesv1.Note
+	validator *protovalidate.Validator
 }
 
-func NewNotesService() *NotesService {
+func NewNotesService(v *protovalidate.Validator) *NotesService {
 	return &NotesService{
-		mu:    &sync.RWMutex{},
-		notes: make([]*notesv1.Note, 0),
+		mu:        &sync.RWMutex{},
+		notes:     make([]*notesv1.Note, 0),
+		validator: v,
 	}
 }
 
@@ -42,6 +46,10 @@ func (s *NotesService) AddNote(_ context.Context, req *notesv1.AddNoteRequest) (
 		Id:       uuid.Must(uuid.NewV4()).String(),
 		Title:    req.Title,
 		Archived: false,
+	}
+
+	if err := s.validator.Validate(note); err != nil {
+		return nil, fmt.Errorf("validation failed: %v", err)
 	}
 
 	s.notes = append(s.notes, note)

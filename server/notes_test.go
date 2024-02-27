@@ -7,14 +7,19 @@ import (
 	notesv1 "github.com/sundowndev/grpc-api-example/proto/notes/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 	"io"
+	"log"
 	"net"
 	"testing"
 )
 
 func newTestServer() (*Server, *grpc.ClientConn, error) {
-	srv := NewServer(insecure.NewCredentials())
+	srv, err := NewServer(insecure.NewCredentials())
+	if err != nil {
+		return nil, nil, err
+	}
 	buffer := 101024 * 1024
 	lis := bufconn.Listen(buffer)
 	srv.listener = lis
@@ -36,8 +41,9 @@ func newTestServer() (*Server, *grpc.ClientConn, error) {
 
 func TestNotesService_ListNotes(t *testing.T) {
 	testcases := []struct {
-		name  string
-		notes []*notesv1.Note
+		name    string
+		notes   []*notesv1.Note
+		wantErr string
 	}{
 		{
 			name:  "test with no notes",
@@ -50,6 +56,20 @@ func TestNotesService_ListNotes(t *testing.T) {
 				{Title: "note 2", Archived: true},
 				{Title: "note 3", Archived: false},
 			},
+		},
+		{
+			name: "test with min_len validation error",
+			notes: []*notesv1.Note{
+				{Title: "", Archived: false},
+			},
+			wantErr: "validation failed: validation error:\n - title: value length must be at least 1 characters [string.min_len]",
+		},
+		{
+			name: "test with max_len validation error",
+			notes: []*notesv1.Note{
+				{Title: "this is a super long note title that can trigger a validation error", Archived: false},
+			},
+			wantErr: "validation failed: validation error:\n - title: value length must be at most 50 characters [string.max_len]",
 		},
 	}
 
@@ -65,8 +85,17 @@ func TestNotesService_ListNotes(t *testing.T) {
 
 			for _, note := range tt.notes {
 				_, err := client.AddNote(context.Background(), &notesv1.AddNoteRequest{Title: note.Title})
-				if err != nil {
+				if err != nil && tt.wantErr == "" {
 					t.Fatal(err)
+				} else {
+					// Retrieve the status from the rpc error
+					s, ok := status.FromError(err)
+					if ok {
+						assert.Equal(t, tt.wantErr, s.Message())
+					} else {
+						log.Fatal(err)
+					}
+					return
 				}
 			}
 

@@ -2,6 +2,7 @@ version: v1
 name: buf.build/sundowndev/grpc-api-example
 deps:
   - buf.build/googleapis/googleapis
+  - buf.build/bufbuild/protovalidate
 lint:
   use:
     - DEFAULT

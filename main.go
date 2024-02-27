@@ -17,8 +17,11 @@ func main() {
 	log := grpclog.NewLoggerV2(os.Stdout, io.Discard, io.Discard)
 	grpclog.SetLoggerV2(log)
 
-	addr := "0.0.0.0:10000"                            // TODO: handle this with CLI flags
-	srv := server.NewServer(insecure.NewCredentials()) // TODO: Replace with your own certificate!
+	addr := "0.0.0.0:10000"                                 // TODO: handle this with CLI flags
+	srv, err := server.NewServer(insecure.NewCredentials()) // TODO: Replace with your own certificate!
+	if err != nil {
+		log.Fatal("failed to initialize server: %v", err)
+	}
 
 	// Serve gRPC Server
 	log.Info("Serving gRPC on https://", addr)

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package notes.v1;
 
-option go_package = "github.com/sundowndev/grpc-api-example/proto/notes/v1";
+import "buf/validate/validate.proto";
 
 service NotesService {
   rpc ListNotes(ListNotesRequest) returns (stream ListNotesResponse) {};
@@ -25,7 +25,7 @@ message AddNoteResponse {
 }
 
 message Note {
-  string id = 1;
-  string title = 2;
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  string title = 2 [(buf.validate.field).string.min_len = 1, (buf.validate.field).string.max_len = 50];
   bool archived = 3;
 }
