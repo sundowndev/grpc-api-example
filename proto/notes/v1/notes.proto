@@ -7,7 +7,14 @@ import "buf/validate/validate.proto";
 service NotesService {
   rpc ListNotes(ListNotesRequest) returns (stream ListNotesResponse) {};
   rpc AddNote(AddNoteRequest) returns (AddNoteResponse) {};
-//  rpc ArchiveNote(ArchiveNoteRequest) returns (ArchiveNoteResponse) {};
+  rpc EditNote(EditNoteRequest) returns (EditNoteResponse) {};
+  //  rpc GetNote(GetNoteRequest) returns (GetNoteResponse) {};
+}
+
+message Note {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+  string title = 2 [(buf.validate.field).string.min_len = 1, (buf.validate.field).string.max_len = 50];
+  bool archived = 3;
 }
 
 message ListNotesRequest {}
@@ -24,8 +31,10 @@ message AddNoteResponse {
   Note note = 1;
 }
 
-message Note {
-  string id = 1 [(buf.validate.field).string.uuid = true];
-  string title = 2 [(buf.validate.field).string.min_len = 1, (buf.validate.field).string.max_len = 50];
-  bool archived = 3;
+message EditNoteRequest {
+  Note note = 1;
+}
+
+message EditNoteResponse {
+  Note note = 1;
 }

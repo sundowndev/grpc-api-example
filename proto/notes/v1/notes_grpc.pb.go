@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	NotesService_ListNotes_FullMethodName = "/notes.v1.NotesService/ListNotes"
 	NotesService_AddNote_FullMethodName   = "/notes.v1.NotesService/AddNote"
+	NotesService_EditNote_FullMethodName  = "/notes.v1.NotesService/EditNote"
 )
 
 // NotesServiceClient is the client API for NotesService service.
@@ -29,6 +30,7 @@ const (
 type NotesServiceClient interface {
 	ListNotes(ctx context.Context, in *ListNotesRequest, opts ...grpc.CallOption) (NotesService_ListNotesClient, error)
 	AddNote(ctx context.Context, in *AddNoteRequest, opts ...grpc.CallOption) (*AddNoteResponse, error)
+	EditNote(ctx context.Context, in *EditNoteRequest, opts ...grpc.CallOption) (*EditNoteResponse, error)
 }
 
 type notesServiceClient struct {
@@ -80,12 +82,22 @@ func (c *notesServiceClient) AddNote(ctx context.Context, in *AddNoteRequest, op
 	return out, nil
 }
 
+func (c *notesServiceClient) EditNote(ctx context.Context, in *EditNoteRequest, opts ...grpc.CallOption) (*EditNoteResponse, error) {
+	out := new(EditNoteResponse)
+	err := c.cc.Invoke(ctx, NotesService_EditNote_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NotesServiceServer is the server API for NotesService service.
 // All implementations should embed UnimplementedNotesServiceServer
 // for forward compatibility
 type NotesServiceServer interface {
 	ListNotes(*ListNotesRequest, NotesService_ListNotesServer) error
 	AddNote(context.Context, *AddNoteRequest) (*AddNoteResponse, error)
+	EditNote(context.Context, *EditNoteRequest) (*EditNoteResponse, error)
 }
 
 // UnimplementedNotesServiceServer should be embedded to have forward compatible implementations.
@@ -97,6 +109,9 @@ func (UnimplementedNotesServiceServer) ListNotes(*ListNotesRequest, NotesService
 }
 func (UnimplementedNotesServiceServer) AddNote(context.Context, *AddNoteRequest) (*AddNoteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddNote not implemented")
+}
+func (UnimplementedNotesServiceServer) EditNote(context.Context, *EditNoteRequest) (*EditNoteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EditNote not implemented")
 }
 
 // UnsafeNotesServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -149,6 +164,24 @@ func _NotesService_AddNote_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NotesService_EditNote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EditNoteRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NotesServiceServer).EditNote(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NotesService_EditNote_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NotesServiceServer).EditNote(ctx, req.(*EditNoteRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NotesService_ServiceDesc is the grpc.ServiceDesc for NotesService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -159,6 +192,10 @@ var NotesService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddNote",
 			Handler:    _NotesService_AddNote_Handler,
+		},
+		{
+			MethodName: "EditNote",
+			Handler:    _NotesService_EditNote_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
