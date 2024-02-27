@@ -37,9 +37,12 @@ func (s *Server) Listen(addr string) error {
 
 func (s *Server) Close() error {
 	s.grpcSrv.GracefulStop()
-	if err := s.listener.Close(); !errors.Is(err, net.ErrClosed) {
+
+	err := s.listener.Close()
+	if err != nil && !errors.Is(err, net.ErrClosed) {
 		return fmt.Errorf("error closing server: %v", err)
 	}
+
 	return nil
 }
 
