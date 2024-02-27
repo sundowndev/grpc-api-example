@@ -3,11 +3,42 @@ syntax = "proto3";
 package notes.v1;
 
 import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {version: "1.0"};
+  external_docs: {
+    url: "https://github.com/sundowndev/grpc-api-example";
+    description: "gRPC application example repository";
+  }
+  schemes: [HTTP, HTTPS];
+};
 
 service NotesService {
   rpc ListNotes(ListNotesRequest) returns (stream ListNotesResponse) {};
-  rpc AddNote(AddNoteRequest) returns (AddNoteResponse) {};
-  rpc EditNote(EditNoteRequest) returns (EditNoteResponse) {};
+  rpc AddNote(AddNoteRequest) returns (AddNoteResponse) {
+    option (google.api.http) = {
+      post:"/api/v1/notes"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Add note"
+      description: "Add a new note."
+      tags: "NotesService"
+    };
+  };
+  rpc EditNote(EditNoteRequest) returns (EditNoteResponse) {
+    option (google.api.http) = {
+      patch:"/api/v1/notes/{note.id}"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Edit note"
+      description: "Edit an existing note."
+      tags: "NotesService"
+    };
+  };
   //  rpc GetNote(GetNoteRequest) returns (GetNoteResponse) {};
 }
 
