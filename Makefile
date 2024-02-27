@@ -1,8 +1,13 @@
+BUF_VERSION:=v1.29.0
+SWAGGER_UI_VERSION:=v5.11.8
+
 install-tools:
 	go install gotest.tools/gotestsum@v1.11.0
+	go install github.com/bufbuild/buf/cmd/buf@$(BUF_VERSION)
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
 	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
-	go install github.com/bufbuild/buf/cmd/buf@v1.29.0
+	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.19.1
+	go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.19.1
 
 build: generate
 	buf build
@@ -11,6 +16,7 @@ build: generate
 generate:
 	buf generate
 	go generate ./...
+	SWAGGER_UI_VERSION=$(SWAGGER_UI_VERSION) ./scripts/generate-swagger-ui.sh
 
 lint:
 	buf lint

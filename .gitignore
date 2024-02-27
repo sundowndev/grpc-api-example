@@ -30,3 +30,4 @@ coverage
 coverage.*
 unit-tests.xml
 .idea
+.cache
