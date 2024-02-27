@@ -166,3 +166,27 @@ func TestNotesService_EditNote(t *testing.T) {
 	assert.Equal(t, "january groceries", res2.Note.Title)
 	assert.True(t, res2.Note.Archived)
 }
+
+func TestNotesService_EditNote_NotFound(t *testing.T) {
+	srv, conn, err := newTestServer()
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := notesv1.NewNotesServiceClient(conn)
+	defer srv.Close()
+	defer conn.Close()
+
+	res, err := client.EditNote(context.Background(), &notesv1.EditNoteRequest{
+		Note: &notesv1.Note{Id: "5cbb1dab-4789-4f32-971d-bdcb60f190b1", Title: "test"},
+	})
+
+	assert.Nil(t, res)
+
+	// Retrieve the status from the rpc error
+	s, ok := status.FromError(err)
+	if ok {
+		assert.Equal(t, "couldn't find note with id: 5cbb1dab-4789-4f32-971d-bdcb60f190b1", s.Message())
+	} else {
+		log.Fatal(err)
+	}
+}

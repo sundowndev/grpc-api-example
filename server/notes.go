@@ -71,11 +71,17 @@ func (s *NotesService) EditNote(_ context.Context, req *notesv1.EditNoteRequest)
 		return nil, fmt.Errorf("validation failed: %v", err)
 	}
 
+	var found bool
 	for i := range s.notes {
 		if s.notes[i].Id == req.Note.Id {
 			s.notes[i] = editedNote
+			found = true
 			break
 		}
+	}
+
+	if !found {
+		return nil, fmt.Errorf("couldn't find note with id: %s", req.Note.Id)
 	}
 
 	return &notesv1.EditNoteResponse{Note: editedNote}, nil
