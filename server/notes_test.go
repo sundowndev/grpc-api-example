@@ -52,22 +52,22 @@ func TestNotesService_ListNotes(t *testing.T) {
 		{
 			name: "test with few notes",
 			notes: []*notesv1.Note{
-				{Title: "test note 1", Archived: false},
-				{Title: "note 2", Archived: true},
-				{Title: "note 3", Archived: false},
+				{Title: "test note 1"},
+				{Title: "note 2"},
+				{Title: "note 3"},
 			},
 		},
 		{
 			name: "test with min_len validation error",
 			notes: []*notesv1.Note{
-				{Title: "", Archived: false},
+				{Title: ""},
 			},
 			wantErr: "validation failed: validation error:\n - title: value length must be at least 1 characters [string.min_len]",
 		},
 		{
 			name: "test with max_len validation error",
 			notes: []*notesv1.Note{
-				{Title: "this is a super long note title that can trigger a validation error", Archived: false},
+				{Title: "this is a super long note title that can trigger a validation error"},
 			},
 			wantErr: "validation failed: validation error:\n - title: value length must be at most 50 characters [string.max_len]",
 		},
@@ -139,4 +139,30 @@ func TestNotesService_AddNote(t *testing.T) {
 	assert.NotNil(t, res)
 	assert.Equal(t, "test note", res.Note.Title)
 	assert.Equal(t, false, res.Note.Archived)
+}
+
+func TestNotesService_EditNote(t *testing.T) {
+	srv, conn, err := newTestServer()
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := notesv1.NewNotesServiceClient(conn)
+	defer srv.Close()
+	defer conn.Close()
+
+	res, err := client.AddNote(context.Background(), &notesv1.AddNoteRequest{Title: "test note"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res.Note.Title = "january groceries"
+	res.Note.Archived = true
+
+	res2, err := client.EditNote(context.Background(), &notesv1.EditNoteRequest{Note: res.Note})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, "january groceries", res2.Note.Title)
+	assert.True(t, res2.Note.Archived)
 }

@@ -1,0 +1,194 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "notes/v1/notes.proto",
+    "version": "1.0"
+  },
+  "tags": [
+    {
+      "name": "NotesService"
+    }
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/notes": {
+      "post": {
+        "summary": "Add note",
+        "description": "Add a new note.",
+        "operationId": "NotesService_AddNote",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AddNoteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1AddNoteRequest"
+            }
+          }
+        ],
+        "tags": [
+          "NotesService"
+        ]
+      }
+    },
+    "/api/v1/notes/{note.id}": {
+      "patch": {
+        "summary": "Edit note",
+        "description": "Edit an existing note.",
+        "operationId": "NotesService_EditNote",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1EditNoteResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "note.id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/NotesServiceEditNoteBody"
+            }
+          }
+        ],
+        "tags": [
+          "NotesService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "NotesServiceEditNoteBody": {
+      "type": "object",
+      "properties": {
+        "note": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "archived": {
+              "type": "boolean"
+            }
+          }
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1AddNoteRequest": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        }
+      }
+    },
+    "v1AddNoteResponse": {
+      "type": "object",
+      "properties": {
+        "note": {
+          "$ref": "#/definitions/v1Note"
+        }
+      }
+    },
+    "v1EditNoteResponse": {
+      "type": "object",
+      "properties": {
+        "note": {
+          "$ref": "#/definitions/v1Note"
+        }
+      }
+    },
+    "v1ListNotesResponse": {
+      "type": "object",
+      "properties": {
+        "note": {
+          "$ref": "#/definitions/v1Note"
+        }
+      }
+    },
+    "v1Note": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "archived": {
+          "type": "boolean"
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "gRPC application example repository",
+    "url": "https://github.com/sundowndev/grpc-api-example"
+  }
+}

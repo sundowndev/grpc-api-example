@@ -54,7 +54,29 @@ func (s *NotesService) AddNote(_ context.Context, req *notesv1.AddNoteRequest) (
 
 	s.notes = append(s.notes, note)
 
-	return &notesv1.AddNoteResponse{
-		Note: note,
-	}, nil
+	return &notesv1.AddNoteResponse{Note: note}, nil
+}
+
+func (s *NotesService) EditNote(_ context.Context, req *notesv1.EditNoteRequest) (*notesv1.EditNoteResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	editedNote := &notesv1.Note{
+		Id:       req.Note.Id,
+		Title:    req.Note.Title,
+		Archived: req.Note.Archived,
+	}
+
+	if err := s.validator.Validate(editedNote); err != nil {
+		return nil, fmt.Errorf("validation failed: %v", err)
+	}
+
+	for i := range s.notes {
+		if s.notes[i].Id == req.Note.Id {
+			s.notes[i] = editedNote
+			break
+		}
+	}
+
+	return &notesv1.EditNoteResponse{Note: editedNote}, nil
 }
