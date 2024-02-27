@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package health.v1;
+
+import "google/api/annotations.proto";
+
+service HealthService {
+  rpc GetHealth(GetHealthRequest) returns (GetHealthResponse) {
+    option (google.api.http) = {
+      get:"/v1/health"
+    };
+  };
+}
+
+message GetHealthRequest {}
+
+message GetHealthResponse {
+  bool ok = 1;
+}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bufbuild/protovalidate-go"
+	healthv1 "github.com/sundowndev/grpc-api-example/proto/health/v1"
 	notesv1 "github.com/sundowndev/grpc-api-example/proto/notes/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -54,5 +55,6 @@ func (s *Server) Close() error {
 }
 
 func (s *Server) registerServices(v *protovalidate.Validator) {
+	healthv1.RegisterHealthServiceServer(s.grpcSrv, NewHealthService())
 	notesv1.RegisterNotesServiceServer(s.grpcSrv, NewNotesService(v))
 }
