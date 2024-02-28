@@ -62,14 +62,14 @@ func TestNotesService_ListNotes(t *testing.T) {
 			notes: []*notesv1.Note{
 				{Title: ""},
 			},
-			wantErr: "validation failed: validation error:\n - title: value length must be at least 1 characters [string.min_len]",
+			wantErr: "validation error:\n - title: value length must be at least 1 characters [string.min_len]",
 		},
 		{
 			name: "test with max_len validation error",
 			notes: []*notesv1.Note{
 				{Title: "this is a super long note title that can trigger a validation error"},
 			},
-			wantErr: "validation failed: validation error:\n - title: value length must be at most 50 characters [string.max_len]",
+			wantErr: "validation error:\n - title: value length must be at most 50 characters [string.max_len]",
 		},
 	}
 

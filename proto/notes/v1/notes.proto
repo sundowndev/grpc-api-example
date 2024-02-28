@@ -37,6 +37,16 @@ service NotesService {
       summary: "Edit note"
       description: "Edit an existing note."
       tags: "NotesService"
+      responses: {
+        // Overwrites global definition.
+        key: "404";
+        value: {
+          description: "Returned when the resource does not exist.";
+          schema: {
+            json_schema: {ref: "#/definitions/rpcStatus"}
+          }
+        }
+      }
     };
   };
   //  rpc GetNote(GetNoteRequest) returns (GetNoteResponse) {};

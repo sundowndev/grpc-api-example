@@ -6,6 +6,8 @@ import (
 	"github.com/bufbuild/protovalidate-go"
 	"github.com/gofrs/uuid"
 	notesv1 "github.com/sundowndev/grpc-api-example/proto/notes/v1"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"sync"
 )
 
@@ -49,7 +51,7 @@ func (s *NotesService) AddNote(_ context.Context, req *notesv1.AddNoteRequest) (
 	}
 
 	if err := s.validator.Validate(note); err != nil {
-		return nil, fmt.Errorf("validation failed: %v", err)
+		return nil, status.New(codes.InvalidArgument, err.Error()).Err()
 	}
 
 	s.notes = append(s.notes, note)
@@ -68,7 +70,7 @@ func (s *NotesService) EditNote(_ context.Context, req *notesv1.EditNoteRequest)
 	}
 
 	if err := s.validator.Validate(editedNote); err != nil {
-		return nil, fmt.Errorf("validation failed: %v", err)
+		return nil, status.New(codes.InvalidArgument, err.Error()).Err()
 	}
 
 	var found bool
@@ -81,7 +83,7 @@ func (s *NotesService) EditNote(_ context.Context, req *notesv1.EditNoteRequest)
 	}
 
 	if !found {
-		return nil, fmt.Errorf("couldn't find note with id: %s", req.Note.Id)
+		return nil, status.New(codes.NotFound, fmt.Sprintf("couldn't find note with id: %s", req.Note.Id)).Err()
 	}
 
 	return &notesv1.EditNoteResponse{Note: editedNote}, nil
