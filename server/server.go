@@ -4,16 +4,18 @@ import (
 	"errors"
 	"fmt"
 	"github.com/bufbuild/protovalidate-go"
-	healthv1 "github.com/sundowndev/grpc-api-example/proto/health/v1"
 	notesv1 "github.com/sundowndev/grpc-api-example/proto/notes/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/health"
+	"google.golang.org/grpc/health/grpc_health_v1"
 	"net"
 )
 
 type Server struct {
-	listener net.Listener
-	grpcSrv  *grpc.Server
+	listener  net.Listener
+	grpcSrv   *grpc.Server
+	healthSrv *health.Server
 }
 
 func NewServer(c credentials.TransportCredentials) (*Server, error) {
@@ -21,7 +23,8 @@ func NewServer(c credentials.TransportCredentials) (*Server, error) {
 		grpc.Creds(c),
 	)
 	srv := &Server{
-		grpcSrv: s,
+		grpcSrv:   s,
+		healthSrv: health.NewServer(),
 	}
 
 	v, err := protovalidate.New()
@@ -29,6 +32,7 @@ func NewServer(c credentials.TransportCredentials) (*Server, error) {
 		return srv, fmt.Errorf("failed to initialize validator: %v", err)
 	}
 
+	grpc_health_v1.RegisterHealthServer(srv.grpcSrv, srv.healthSrv)
 	srv.registerServices(v)
 
 	return srv, nil
@@ -44,6 +48,8 @@ func (s *Server) Listen(addr string) error {
 }
 
 func (s *Server) Close() error {
+	s.healthSrv.Shutdown()
+
 	s.grpcSrv.GracefulStop()
 
 	err := s.listener.Close()
@@ -55,6 +61,6 @@ func (s *Server) Close() error {
 }
 
 func (s *Server) registerServices(v *protovalidate.Validator) {
-	healthv1.RegisterHealthServiceServer(s.grpcSrv, NewHealthService())
 	notesv1.RegisterNotesServiceServer(s.grpcSrv, NewNotesService(v))
+	s.healthSrv.SetServingStatus("notes.v1.NotesService", grpc_health_v1.HealthCheckResponse_SERVING)
 }

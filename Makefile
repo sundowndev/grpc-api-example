@@ -15,6 +15,7 @@ build: generate
 
 generate:
 	find ./proto -type f -name "*.go" -delete # Delete existing Go generated files
+	rm -rf ./gen/openapiv2/* # Delete existing openapi specs
 	buf generate
 	go generate ./...
 	SWAGGER_UI_VERSION=$(SWAGGER_UI_VERSION) ./scripts/generate-swagger-ui.sh
