@@ -9,6 +9,7 @@ This repository demonstrates how to use gRPC with Go and various plugins. It's a
 - graceful server shut down (designed for orchestration systems such as k8s)
 - gRPC [health check protocol](https://github.com/grpc/grpc/blob/master/doc/health-checking.md#grpc-health-checking-protocol).
 - rpc message validation
+- gRPC services testing
 
 ⚠️ For demo purposes, encryption wasn't properly handled in this project.
 
