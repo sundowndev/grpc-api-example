@@ -10,6 +10,7 @@ import (
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"net"
+	"time"
 )
 
 type Server struct {
@@ -49,6 +50,7 @@ func (s *Server) Listen(addr string) error {
 
 func (s *Server) Close() error {
 	s.healthSrv.Shutdown()
+	time.Sleep(5 * time.Second) // Set a timeout in which all services will be marked as unhealthy
 
 	s.grpcSrv.GracefulStop()
 
