@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/sundowndev/grpc-api-example/gen"
-	healthv1 "github.com/sundowndev/grpc-api-example/proto/health/v1"
 	notesv1 "github.com/sundowndev/grpc-api-example/proto/notes/v1"
 	"github.com/sundowndev/grpc-api-example/server"
 	"google.golang.org/grpc"
@@ -53,10 +52,6 @@ func httpServer(ctx context.Context, addr string) error {
 
 	// Register services
 	err := notesv1.RegisterNotesServiceHandlerFromEndpoint(ctx, mux, *grpcServerEndpoint, opts)
-	if err != nil {
-		return err
-	}
-	err = healthv1.RegisterHealthServiceHandlerFromEndpoint(ctx, mux, *grpcServerEndpoint, opts)
 	if err != nil {
 		return err
 	}
