@@ -31,9 +31,3 @@ Usage of ./bin/server:
   -http-server-endpoint string
     	HTTP server endpoint (default "localhost:8000")
 ```
-
-#### Health checking
-
-```
-$ ./bin/
-```
